@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>KONIT - Microsoft License Reseller</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Telegram Web App Script -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: 'Ubuntu', sans-serif;
+            background-color: var(--tg-theme-bg-color, #f3f4f6);
+            color: var(--tg-theme-text-color, #1f2937);
+        }
+        .input-error {
+            border-color: #ef4444 !important;
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #invoice-view-content, #invoice-view-content * {
+                visibility: visible;
+            }
+            #invoice-view-content {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 1rem;
+            }
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div class="container mx-auto px-4 py-8">
+        <header class="text-center mb-8">
+            <div class="flex justify-center items-center gap-3">
+                <!-- SVG Logo -->
+                <svg class="h-12 w-12" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <g stroke-width="10" stroke-linecap="butt">
+                      <circle cx="50" cy="50" r="40" stroke="#EA4335" stroke-dasharray="41.887 251.327" transform="rotate(-90 50 50)"/>
+                      <circle cx="50" cy="50" r="40" stroke="#F9A825" stroke-dasharray="41.887 251.327" transform="rotate(-30 50 50)"/>
+                      <circle cx="50" cy="50" r="40" stroke="#34A853" stroke-dasharray="41.887 251.327" transform="rotate(30 50 50)"/>
+                      <circle cx="50" cy="50" r="40" stroke="#4285F4" stroke-dasharray="41.887 251.327" transform="rotate(90 50 50)"/>
+                      <circle cx="50" cy="50" r="40" stroke="#8E44AD" stroke-dasharray="41.887 251.327" transform="rotate(150 50 50)"/>
+                      <circle cx="50" cy="50" r="40" stroke="#1ABC9C" stroke-dasharray="41.887 251.327" transform="rotate(210 50 50)"/>
+                    </g>
+                    <text x="50" y="55" dominant-baseline="middle" text-anchor="middle" font-family="Ubuntu, sans-serif" font-size="50" font-weight="700" fill="#4285F4">X</text>
+                </svg>
+                <h1 class="text-3xl font-bold text-blue-600 tracking-wider">KONIT</h1>
+            </div>
+            <h2 class="text-4xl font-bold text-gray-800 mt-4">Microsoft License Store</h2>
+            <p class="text-gray-600 mt-2">Your one-stop shop for Microsoft licensing solutions.</p>
+        </header>
+        
+        <div class="bg-red-600 text-white text-center p-4 rounded-lg shadow-lg mb-12 animate-pulse">
+            <h3 class="text-2xl font-bold"><i class="fas fa-gift mr-2"></i>New Year Promotion! 50% Off All Licenses!</h3>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Products Section -->
+            <main class="w-full lg:w-2/3">
+                <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Product cards will be injected here -->
+                </div>
+            </main>
+
+            <!-- Cart Section -->
+            <aside class="w-full lg:w-1/3">
+                <div class="bg-white p-6 rounded-lg shadow-md sticky top-8">
+                    <h2 class="text-2xl font-semibold mb-4 text-gray-700">Shopping Cart</h2>
+                    <div id="cart-items" class="mb-4">
+                        <p class="text-gray-500">Your cart is empty.</p>
+                    </div>
+                    <div class="border-t pt-4">
+                        <div class="flex justify-between items-center text-xl font-bold">
+                            <span>Total:</span>
+                            <span id="cart-total">$0.00</span>
+                        </div>
+                        <button id="checkout-btn" class="w-full bg-blue-600 text-white py-3 rounded-lg mt-4 hover:bg-blue-700 transition-colors disabled:bg-gray-400">
+                            Checkout
+                        </button>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
+        <!-- Checkout View -->
+        <div id="checkout-view" class="bg-white rounded-lg shadow-xl max-h-[90vh] overflow-y-auto w-full max-w-md">
+            <div class="p-8">
+                <h3 class="text-2xl font-bold mb-4 text-center">Checkout</h3>
+            
+                <div id="modal-summary" class="text-gray-600 mb-6 border-b pb-4"></div>
+                
+                <h4 class="text-lg font-semibold mb-3">Customer Information</h4>
+                <div class="space-y-4 mb-6">
+                    <input type="text" id="customer-name" placeholder="Full Name (Required)" class="w-full p-2 border rounded" required>
+                    <input type="email" id="customer-email" placeholder="Email Address" class="w-full p-2 border rounded">
+                    <input type="tel" id="customer-phone" placeholder="Phone: 012 345 678 (Required)" class="w-full p-2 border rounded" required>
+                </div>
+
+                 <div class="flex justify-between items-center text-lg font-bold mb-6">
+                    <span>Total:</span>
+                    <span id="modal-total">$0.00</span>
+                </div>
+
+                <h4 class="text-lg font-semibold mb-3">Payment Method</h4>
+                <div id="khqr-view" class="text-center p-4 border rounded-lg mb-6">
+                    <img src="https://i.ibb.co/qFxCX4s/image-e620f8.png" alt="KHQR Code" class="mx-auto my-2 rounded-lg w-48 h-auto">
+                    <p class="font-bold text-lg">SOK SAM RONG VANN</p>
+                    <p class="text-sm text-gray-600 mt-2">Please scan the KHQR code with your banking app to complete the payment.</p>
+                </div>
+
+                <div id="payment-message" class="hidden text-center p-3 rounded-lg mb-4"></div>
+
+                <div class="sticky bottom-0 bg-white pt-4 pb-8 -mx-8 px-8">
+                    <button id="pay-btn" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors">
+                        Confirm Payment
+                    </button>
+                     <button id="cancel-payment-btn" class="w-full bg-gray-600 text-white py-2 rounded-lg hover:bg-gray-700 transition-colors mt-2">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Invoice View -->
+        <div id="invoice-view" class="bg-white rounded-lg shadow-xl max-h-[90vh] overflow-y-auto w-full max-w-2xl hidden">
+            <div id="invoice-view-content" class="p-8">
+                 <!-- Invoice content will be generated here -->
+            </div>
+            <div class="sticky bottom-0 bg-white p-4 border-t flex justify-end gap-2 no-print">
+                <button id="print-invoice-btn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                    <i class="fas fa-print"></i>
+                    Print / Save as PDF
+                </button>
+                <button id="close-invoice-btn" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">Close</button>
+            </div>
+        </div>
+
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+             // Initialize Telegram Web App
+            const tg = window.Telegram.WebApp;
+            tg.ready();
+
+            const products = [
+                { id: 1, name: 'Microsoft 365 Business Basic', price: 60.00, category: 'Microsoft 365', description: 'Web and mobile versions of Office apps, plus chat, calling, and meetings.' },
+                { id: 2, name: 'Microsoft 365 Business Standard', price: 99.50, category: 'Microsoft 365', description: 'Everything in Basic, plus desktop versions of Office apps.' },
+                { id: 3, name: 'Microsoft 365 Business Premium', price: 199.00, category: 'Microsoft 365', description: 'Everything in Standard, plus advanced security and device management.' },
+                { id: 4, name: 'Windows 11 Pro', price: 199.99, category: 'Windows', description: 'For professionals and businesses. Includes all the features of Windows 11 Home, plus enterprise-grade security.' },
+                { id: 5, name: 'Windows Server 2022 Standard', price: 1069.00, category: 'Server', description: 'For physically or minimally virtualized environments.' },
+                { id: 6, name: 'SQL Server 2019 Standard', price: 3586.00, category: 'Server', description: 'For mid-tier applications and data marts.' },
+            ];
+            
+            const DISCOUNT_RATE = 0.5; // 50% discount
+
+            const productGrid = document.getElementById('product-grid');
+            const cartItemsContainer = document.getElementById('cart-items');
+            const cartTotalEl = document.getElementById('cart-total');
+            const checkoutBtn = document.getElementById('checkout-btn');
+            
+            const modal = document.getElementById('modal');
+            const checkoutView = document.getElementById('checkout-view');
+            const invoiceView = document.getElementById('invoice-view');
+            const invoiceContent = document.getElementById('invoice-view-content');
+
+            const customerNameInput = document.getElementById('customer-name');
+            const customerEmailInput = document.getElementById('customer-email');
+            const customerPhoneInput = document.getElementById('customer-phone');
+            const cancelPaymentBtn = document.getElementById('cancel-payment-btn');
+            const modalSummary = document.getElementById('modal-summary');
+            const modalTotal = document.getElementById('modal-total');
+            const payBtn = document.getElementById('pay-btn');
+            const paymentMessage = document.getElementById('payment-message');
+
+
+            let cart = [];
+
+            // --- Validation Functions ---
+            function validateEmail(email) {
+                if (email.trim() === '') return true; // Optional field is valid if empty
+                const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+                return re.test(String(email).toLowerCase());
+            }
+
+            function validateCambodianPhone(phone) {
+                // Allows +855 or 0, followed by 8 or 9 digits. Allows spaces.
+                const re = /^(?:\+855|0)[1-9]\d{7,8}$/;
+                return re.test(phone.replace(/[\s-]/g, ''));
+            }
+
+            // Render Products
+            function renderProducts() {
+                productGrid.innerHTML = '';
+                products.forEach(product => {
+                    const discountedPrice = product.price * DISCOUNT_RATE;
+                    const productCard = `
+                        <div class="bg-white p-6 rounded-lg shadow-md flex flex-col">
+                            <h3 class="text-xl font-semibold mb-2">${product.name}</h3>
+                            <p class="text-gray-500 mb-2">${product.category}</p>
+                            <p class="text-gray-600 mb-4 flex-grow">${product.description}</p>
+                            <div class="flex justify-between items-center mt-auto">
+                                <div>
+                                    <span class="text-gray-500 line-through text-lg">$${product.price.toFixed(2)}</span>
+                                    <span class="text-2xl font-bold text-red-600 ml-2">$${discountedPrice.toFixed(2)}</span>
+                                </div>
+                                <button data-id="${product.id}" class="add-to-cart-btn bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
+                                    <i class="fas fa-shopping-cart mr-2"></i>Add
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    productGrid.innerHTML += productCard;
+                });
+            }
+
+            // Render Cart
+            function renderCart() {
+                cartItemsContainer.innerHTML = '';
+                if (cart.length === 0) {
+                    cartItemsContainer.innerHTML = '<p class="text-gray-500">Your cart is empty.</p>';
+                    checkoutBtn.disabled = true;
+                } else {
+                     checkoutBtn.disabled = false;
+                    cart.forEach(item => {
+                        const cartItem = `
+                            <div class="flex justify-between items-center mb-2">
+                                <div class="flex-grow">
+                                    <p class="font-semibold">${item.name}</p>
+                                    <p class="text-sm text-gray-500">$${item.currentPrice.toFixed(2)}</p>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="number" min="1" value="${item.quantity}" data-id="${item.id}" class="quantity-input w-16 text-center border rounded-md mx-2">
+                                </div>
+                                <p class="font-bold w-24 text-right">$${(item.currentPrice * item.quantity).toFixed(2)}</p>
+                            </div>
+                        `;
+                        cartItemsContainer.innerHTML += cartItem;
+                    });
+                }
+                updateCartTotal();
+            }
+            
+            function updateCartQuantity(productId, quantity) {
+                 const cartItem = cart.find(item => item.id === productId);
+                 if (cartItem) {
+                    cartItem.quantity = quantity;
+                 }
+                 renderCart();
+            }
+
+            // Update Cart Total
+            function updateCartTotal() {
+                const total = cart.reduce((sum, item) => sum + (item.currentPrice * item.quantity), 0);
+                cartTotalEl.textContent = `$${total.toFixed(2)}`;
+                return total;
+            }
+
+            // Add to Cart
+            function addToCart(productId) {
+                const product = products.find(p => p.id === productId);
+                const discountedPrice = product.price * DISCOUNT_RATE;
+                const cartItem = cart.find(item => item.id === productId);
+
+                if (cartItem) {
+                    cartItem.quantity++;
+                } else {
+                    cart.push({ ...product, quantity: 1, currentPrice: discountedPrice });
+                }
+                renderCart();
+            }
+            
+            function resetCheckoutView() {
+                paymentMessage.classList.add('hidden');
+                payBtn.textContent = 'Confirm Payment & Generate Invoice';
+                payBtn.disabled = false;
+
+                // Pre-fill fields if Telegram user data is available
+                if (tg.initDataUnsafe.user) {
+                     customerNameInput.value = `${tg.initDataUnsafe.user.first_name || ''} ${tg.initDataUnsafe.user.last_name || ''}`.trim();
+                } else {
+                    customerNameInput.value = '';
+                }
+
+                customerEmailInput.value = '';
+                customerPhoneInput.value = '';
+                customerNameInput.classList.remove('input-error');
+                customerEmailInput.classList.remove('input-error');
+                customerPhoneInput.classList.remove('input-error');
+            }
+
+            function generateInvoiceText() {
+                const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                const total = cart.reduce((sum, item) => sum + (item.currentPrice * item.quantity), 0);
+                const discountAmount = subtotal - total;
+                const now = new Date();
+                const invoiceNumber = Math.floor(Math.random() * 900000) + 100000;
+                const issueDate = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                const issueTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short' });
+
+                 let itemsText = cart.map(item => 
+                    `${item.name} (Qty: ${item.quantity}) - $${(item.currentPrice * item.quantity).toFixed(2)}`
+                ).join('\n');
+
+                return `
+*New Order from KONIT Store*
+=========================
+*Invoice #:* ${invoiceNumber}
+*Date:* ${issueDate}
+*Time:* ${issueTime}
+
+*Customer:*
+Name: ${customerNameInput.value.trim()}
+Phone: ${customerPhoneInput.value.trim()}
+Email: ${customerEmailInput.value.trim() || 'N/A'}
+Telegram User: @${tg.initDataUnsafe.user?.username || 'N/A'}
+
+*Order Details:*
+${itemsText}
+---------------------------------
+*Subtotal:* $${subtotal.toFixed(2)}
+*Discount (50%):* -$${discountAmount.toFixed(2)}
+*TOTAL: $${total.toFixed(2)}*
+---------------------------------
+Payment confirmed via KHQR.
+                `;
+            }
+
+            function showInvoice() {
+                const now = new Date();
+                const invoiceNumber = Math.floor(Math.random() * 900000) + 100000;
+                const issueDate = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                const issueTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short' });
+                
+                const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                const total = cart.reduce((sum, item) => sum + (item.currentPrice * item.quantity), 0);
+                const discountAmount = subtotal - total;
+
+                const customerName = customerNameInput.value;
+                const customerEmail = customerEmailInput.value;
+                const customerPhone = customerPhoneInput.value;
+
+
+                let itemsHtml = '';
+                cart.forEach(item => {
+                    itemsHtml += `
+                        <tr class="border-b">
+                            <td class="py-2 pr-2">${item.name}</td>
+                            <td class="py-2 text-center">${item.quantity}</td>
+                            <td class="py-2 text-right">$${item.price.toFixed(2)}</td>
+                            <td class="py-2 text-right">$${item.currentPrice.toFixed(2)}</td>
+                            <td class="py-2 text-right pl-2">$${(item.currentPrice * item.quantity).toFixed(2)}</td>
+                        </tr>
+                    `;
+                });
+
+                const signatureImage = 'https://i.ibb.co/6wY5cQ9/image-8c0933-1.png';
+
+                const invoiceHTML = `
+                    <div class="flex justify-between items-start mb-8">
+                        <div>
+                             <div class="flex items-center gap-3">
+                                <svg class="h-12 w-12" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <g stroke-width="10" stroke-linecap="butt">
+                                      <circle cx="50" cy="50" r="40" stroke="#EA4335" stroke-dasharray="41.887 251.327" transform="rotate(-90 50 50)"/>
+                                      <circle cx="50" cy="50" r="40" stroke="#F9A825" stroke-dasharray="41.887 251.327" transform="rotate(-30 50 50)"/>
+                                      <circle cx="50" cy="50" r="40" stroke="#34A853" stroke-dasharray="41.887 251.327" transform="rotate(30 50 50)"/>
+                                      <circle cx="50" cy="50" r="40" stroke="#4285F4" stroke-dasharray="41.887 251.327" transform="rotate(90 50 50)"/>
+                                      <circle cx="50" cy="50" r="40" stroke="#8E44AD" stroke-dasharray="41.887 251.327" transform="rotate(150 50 50)"/>
+                                      <circle cx="50" cy="50" r="40" stroke="#1ABC9C" stroke-dasharray="41.887 251.327" transform="rotate(210 50 50)"/>
+                                    </g>
+                                    <text x="50" y="55" dominant-baseline="middle" text-anchor="middle" font-family="Ubuntu, sans-serif" font-size="50" font-weight="700" fill="#4285F4">X</text>
+                                </svg>
+                                <div>
+                                    <h1 class="text-2xl font-bold text-blue-600 tracking-wider">KONIT</h1>
+                                    <p>Phnom Penh, Cambodia</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <h2 class="text-2xl font-bold uppercase">Invoice</h2>
+                            <p>#${invoiceNumber}</p>
+                            <p>Date: ${issueDate}</p>
+                            <p>Time: ${issueTime}</p>
+                        </div>
+                    </div>
+                    <div class="mb-8">
+                        <h3 class="font-bold mb-1">Bill To:</h3>
+                        <p>${customerName}</p>
+                        <p>${customerEmail || 'N/A'}</p>
+                        <p>${customerPhone}</p>
+                    </div>
+                    <table class="w-full mb-8 text-sm">
+                        <thead>
+                            <tr class="bg-gray-200">
+                                <th class="text-left font-bold p-2">Item</th>
+                                <th class="font-bold p-2">Qty</th>
+                                <th class="text-right font-bold p-2">Original Price</th>
+                                <th class="text-right font-bold p-2">Discounted Price</th>
+                                <th class="text-right font-bold p-2">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>${itemsHtml}</tbody>
+                    </table>
+                    <div class="flex justify-end mb-8">
+                         <div class="w-full md:w-2/5 space-y-2">
+                             <div class="flex justify-between"><span>Subtotal:</span><span>$${subtotal.toFixed(2)}</span></div>
+                             <div class="flex justify-between text-red-600"><span>New Year Discount (50%):</span><span>-$${discountAmount.toFixed(2)}</span></div>
+                             <div class="flex justify-between font-bold text-xl bg-gray-200 p-3 rounded-lg">
+                                <span>TOTAL:</span>
+                                <span>$${total.toFixed(2)}</span>
+                            </div>
+                         </div>
+                    </div>
+                    <div class="text-sm text-gray-600 mb-8">
+                        <p><span class="font-bold">Payment Method:</span> KHQR</p>
+                        <p class="font-bold mt-4">Thank you for your business!</p>
+                    </div>
+                    <div class="mt-24 grid grid-cols-2 gap-16 pt-8 border-t border-gray-400">
+                        <div class="text-center">
+                            <img src="${signatureImage}" alt="Seller's Signature" class="h-12 mx-auto mb-2">
+                            <div class="border-b-2 border-gray-400 mb-2"></div>
+                            <p class="text-sm font-semibold">Seller's Signature</p>
+                            <p class="text-sm text-gray-600">KONIT</p>
+                        </div>
+                        <div class="text-center">
+                             <div class="h-12 mb-2"></div>
+                            <div class="border-b-2 border-gray-400 mb-2"></div>
+                            <p class="text-sm font-semibold">Customer's Signature</p>
+                        </div>
+                    </div>
+                `;
+
+                checkoutView.classList.add('hidden');
+                invoiceContent.innerHTML = invoiceHTML;
+                invoiceView.classList.remove('hidden');
+
+                document.getElementById('print-invoice-btn').addEventListener('click', () => window.print());
+                document.getElementById('close-invoice-btn').addEventListener('click', () => {
+                    modal.classList.add('hidden');
+                    invoiceView.classList.add('hidden');
+                    checkoutView.classList.remove('hidden'); 
+                    cart = [];
+                    renderCart();
+                });
+            }
+            
+            // --- Event Listeners ---
+            cartItemsContainer.addEventListener('change', e => {
+                if (e.target.classList.contains('quantity-input')) {
+                     const productId = parseInt(e.target.dataset.id);
+                     const quantity = parseInt(e.target.value);
+                     if (quantity > 0) {
+                        updateCartQuantity(productId, quantity);
+                     } else {
+                        renderCart();
+                     }
+                }
+            });
+
+            productGrid.addEventListener('click', (e) => {
+                const btn = e.target.closest('.add-to-cart-btn');
+                if (btn) {
+                    const productId = parseInt(btn.dataset.id);
+                    addToCart(productId);
+                }
+            });
+            
+            checkoutBtn.addEventListener('click', () => {
+                modalSummary.innerHTML = '';
+                let total = 0;
+                cart.forEach(item => {
+                    const summaryItem = `<div class="flex justify-between py-1"><p>${item.name} (x${item.quantity})</p> <p class="font-semibold">$${(item.currentPrice * item.quantity).toFixed(2)}</p></div>`;
+                    modalSummary.innerHTML += summaryItem;
+                    total += item.currentPrice * item.quantity;
+                });
+                modalTotal.textContent = `$${total.toFixed(2)}`;
+                resetCheckoutView();
+                modal.classList.remove('hidden');
+                checkoutView.classList.remove('hidden');
+                invoiceView.classList.add('hidden');
+            });
+
+            cancelPaymentBtn.addEventListener('click', () => {
+                modal.classList.add('hidden');
+            });
+
+            payBtn.addEventListener('click', async () => {
+                // Reset previous errors
+                paymentMessage.classList.add('hidden');
+                customerNameInput.classList.remove('input-error');
+                customerEmailInput.classList.remove('input-error');
+                customerPhoneInput.classList.remove('input-error');
+
+
+                const customerName = customerNameInput.value.trim();
+                const customerEmail = customerEmailInput.value.trim();
+                const customerPhone = customerPhoneInput.value.trim();
+                let isValid = true;
+                let errorMessage = '';
+
+                if (!customerName) {
+                    isValid = false;
+                    customerNameInput.classList.add('input-error');
+                    errorMessage = 'Please enter your name.';
+                } else if (!customerPhone) {
+                    isValid = false;
+                    customerPhoneInput.classList.add('input-error');
+                    errorMessage = 'Phone number is required.';
+                } else if (!validateCambodianPhone(customerPhone)) {
+                     isValid = false;
+                    customerPhoneInput.classList.add('input-error');
+                    errorMessage = 'Please enter a valid Cambodian phone number (e.g., 012345678 or +85512345678).';
+                } else if (!validateEmail(customerEmail)) {
+                     isValid = false;
+                    customerEmailInput.classList.add('input-error');
+                    errorMessage = 'Please enter a valid email address.';
+                }
+
+                if (!isValid) {
+                    paymentMessage.textContent = errorMessage;
+                    paymentMessage.className = 'text-center p-3 rounded-lg my-4 bg-red-100 text-red-700';
+                    return;
+                }
+                
+                payBtn.disabled = true;
+                payBtn.textContent = 'Processing...';
+
+                // This is a simulation, so we just show the invoice.
+                // In a real app, you would verify payment here.
+                
+                // Send data to Telegram before showing the final confirmation.
+                 const invoiceText = generateInvoiceText();
+                 tg.sendData(invoiceText);
+                 
+                 // Note: tg.close() will close the Mini App window.
+                 // We will show the invoice in the app instead for this simulation.
+                 
+                paymentMessage.textContent = 'Payment Confirmed! Generating invoice...';
+                paymentMessage.className = 'text-center p-3 rounded-lg my-4 bg-green-100 text-green-700';
+
+                setTimeout(showInvoice, 1500);
+            });
+
+
+            // Initial Render
+            renderProducts();
+            renderCart();
+        });
+    </script>
+
+</body>
+</html>
